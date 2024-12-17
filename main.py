@@ -39,6 +39,36 @@ async def help_command(message: Message):
         "/help - справка\n"
         "/weather - получить прогноз погоды"
     )
+# Хэндлер для команды /weather
+@dp.message(Command("weather"))
+async def weather_command(message: Message):
+    # Формируем запрос к API OpenWeatherMap
+    url = (
+        f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
+    )
+    try:
+        response = requests.get(url)
+        data = response.json()
+
+        if data.get("cod") != 200:
+            await message.answer("Не удалось получить данные о погоде. Попробуйте позже.")
+            return
+
+        # Извлекаем данные о погоде
+        temperature = data["main"]["temp"]
+        description = data["weather"][0]["description"]
+        city_name = data["name"]
+
+        # Формируем ответ для пользователя
+        weather_message = (
+            f"Погода в крае {city_name}:\n"
+            f"Температура: {temperature}°C\n"
+            f"Условия: {description.capitalize()}"
+        )
+        await message.answer(weather_message)
+    except Exception as e:
+        logging.error(f"Ошибка при получении погоды: {e}")
+        await message.answer("Произошла ошибка при получении прогноза погоды.")
 
 
 # Основная функция запуска
